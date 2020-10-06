@@ -1,0 +1,93 @@
+---
+title: "Homework 3"
+author: Chariz Seijo
+output: github_document
+---
+
+Solution to HW 3. 
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(p8105.datasets)
+```
+
+## Problem 1
+
+```{r}
+data("instacart")
+```
+
+This dataset contains `r nrow(instacart)` rows and `r ncol(instacart)` columns.
+
+Observations are the levels of items in orders by user. There are user/order variables, such as.. There are also item variables, including name, aisle, ...
+
+How many aisles, and which are most items from?
+
+```{r}
+instacart %>% 
+  count(aisle) %>% 
+  arrange(desc(n))
+```
+
+Make a plot!
+
+```{r}
+instacart %>% 
+  count(aisle) %>% 
+  filter(n > 10000) %>% 
+  mutate(
+    aisle = factor(aisle),
+    aisle = fct_reorder(aisle, n)
+  ) %>% 
+  ggplot(aes(x = aisle, y = n)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+Make a table!
+
+```{r}
+instacart %>% 
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
+  group_by(aisle) %>%
+  count(product_name) %>% 
+  mutate(rank = min_rank(desc(n))) %>% 
+  filter(rank < 4) %>% 
+  arrange(aisle, rank) %>% 
+  knitr::kable()
+```
+
+Apples vs. ice cream!
+
+```{r}
+instacart %>% 
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
+  group_by(product_name, order_dow) %>% 
+  summarize(mean_hour = mean(order_hour_of_day)) %>% 
+  pivot_wider(
+    names_from = order_dow,
+    values_from = mean_hour
+  )
+```
+
+
+## Problem 2
+
+Load, tidy, and wrangle the data. (pivot longer, check variables)
+
+Table (group_by and summarize, explain, factor so day of the week is in correct order)
+
+Plot (ggplot, x = minutes, y = activity count, use geom line, color to indicate day of the week, develop conclusions)
+
+
+## Problem 3
+
+```{r}
+data("ny_noaa")
+```
+
+Data cleaning (count, etc.)
+
+2-panel plot (org data first - group by station, year, month + summarize; filter january and july; then plot)
+
+2-panel plot (make each plot, then figure out how to merge; first plot - contour plot or bin plot; second plot - filter first, box plot or ridge plot)
