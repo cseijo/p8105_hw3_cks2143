@@ -76,7 +76,7 @@ instacart %>%
 
 **Load, tidy, and wrangle the accelerometer data.**
 
-```{r accel_df}
+```{r accel_df, message=FALSE, warning=FALSE}
 accel_df = 
   read_csv(
       "./data/accel_data.csv") %>%
@@ -100,9 +100,9 @@ This dataset includes five weeks of accelerometer data collected on a 63 year-ol
 
 **Total activity by day**
 
-```{r accel_table}
+```{r accel_table, message=FALSE, warning=FALSE}
 accel_df %>% 
-  group_by(week, day) %>% 
+  group_by(day_id, day, week) %>% 
   summarize(total_activity = sum(activity_counts)) %>%
   knitr::kable()
 ```
@@ -125,7 +125,17 @@ Based on this graph, we can conclude that there is noticeably less activity duri
 data("ny_noaa")
 ```
 
-In the NY NOAA dataset, there are `r ncol(ny_noaa)` columns and `r nrow(ny_noaa)` rows. This dataset includes weather data from New York state weather stations, with the variables weather station ID, date of observation, precipitation measured in tenths of mm, snowfall and snow depth in mm, and maximum and minimum temperature in tenths of degrees C. 
+In the NY NOAA dataset, there are `r ncol(ny_noaa)` columns and `r nrow(ny_noaa)` rows. This dataset includes weather data from New York state weather stations.
+
+Variable description:
+
+* `id`: Weather station ID
+* `date`: Date of observation
+* `prcp`: Precipitation (tenths of mm)
+* `snow`: Snowfall (mm)
+* `snwd`: Snow depth (mm)
+* `tmax`: Maximum temperature (tenths of degrees C)
+* `tmin`: Minimum temperature (tenths of degrees C)
 
 ```{r, include=FALSE}
 colSums(is.na(ny_noaa))
@@ -149,9 +159,53 @@ noaa_df =
   )
 ```
 
-For snow, the most commonly observed value is 0 at `r noaa_df %>% filter (snow == 0) %>% count()` observations. Given that snow does not fall the majority of the year, it would make sense that this is the most commonly observed value.
+```{r, include=FALSE}
+noaa_df %>% 
+  count(snow) %>% 
+  arrange(desc(n))
+```
+
+For snow, the most commonly observed value is 0 at `r noaa_df %>% filter (snow == 0) %>% count()` observations. Snow does not fall the majority of the year in the state of New York, which supports 0 being the most commonly observed value.
+
+**Average max temperature, January and July** 
+
+```{r noaa_tmax, message=FALSE, warning=FALSE}
+ noaa_tmax = noaa_df %>% 
+  filter(month %in% c("1", "7")) %>% 
+  group_by(id, year, month) %>% 
+  mutate(
+    avg_tmax = mean(tmax, na.rm = TRUE),
+    month = month.name[month]
+  )
+
+ggplot(noaa_tmax, aes(x = year, y = avg_tmax, color = month)) +
+  geom_point(alpha = 0.1) +
+  geom_smooth(alpha = 0.1) +
+  facet_grid(~ month) +
+  labs(
+    title = "Average max temp in January and July across years",
+    x = "Year",
+    y = "Temperature (°C)"
+    )
+```
+
+The observable structure demonstrates lower average max temperatures in January (roughly -10°C to 10°C) and higher averaged max temperatures in July (roughly 25°C to 30°C). There is more fluctuation in temperate in January, and a few outliers below -10°C. There are outliers for July with the lowest being about 14°C.
+
+**Two-panel plot**
+
+```{r two_merge, message=FALSE, warning=FALSE}
+library(hexbin)
+library(patchwork)
+
+tmax_tmin = noaa_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_hex()
+  
+```
 
 
-2-panel plot (org data first - group by station, year, month + summarize; filter january and july; then plot)
 
 2-panel plot (make each plot, then figure out how to merge; first plot - contour plot or bin plot; second plot - filter first, box plot or ridge plot)
+
+snow_plot = noaa_df %>% 
+  filter(snow > 0 & snow < 100)
