@@ -23,7 +23,7 @@ Observations are the levels of items in orders by user. There are user/order var
 
 **How many aisles, and which are most items from?**
 
-```{r}
+```{r insta_aisles}
 instacart %>% 
   count(aisle) %>% 
   arrange(desc(n))
@@ -31,7 +31,7 @@ instacart %>%
 
 **Make a plot!**
 
-```{r}
+```{r insta_plot}
 instacart %>% 
   count(aisle) %>% 
   filter(n > 10000) %>% 
@@ -46,7 +46,7 @@ instacart %>%
 
 **Make a table!**
 
-```{r}
+```{r insta_table}
 instacart %>% 
   filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
   group_by(aisle) %>%
@@ -59,7 +59,7 @@ instacart %>%
 
 **Apples vs. ice cream!**
 
-```{r}
+```{r apples_table}
 instacart %>% 
   filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
   group_by(product_name, order_dow) %>% 
@@ -76,7 +76,7 @@ instacart %>%
 
 **Load, tidy, and wrangle the accelerometer data.**
 
-```{r}
+```{r accel_df}
 accel_df = 
   read_csv(
       "./data/accel_data.csv") %>%
@@ -100,7 +100,7 @@ This dataset includes five weeks of accelerometer data collected on a 63 year-ol
 
 **Total activity by day**
 
-```{r}
+```{r accel_table}
 accel_df %>% 
   group_by(week, day) %>% 
   summarize(total_activity = sum(activity_counts)) %>%
@@ -111,7 +111,7 @@ This man appears to have noticeable dips in activity on the last two Saturdays o
 
 **Plot of total activity by day**
 
-```{r}
+```{r accel_plot}
 accel_df %>% 
  ggplot(aes(x = minute, y = activity_counts)) +
   geom_line(aes(color = day), alpha = .5)
@@ -125,7 +125,32 @@ Based on this graph, we can conclude that there is noticeably less activity duri
 data("ny_noaa")
 ```
 
-Data cleaning (count, etc.)
+In the NY NOAA dataset, there are `r ncol(ny_noaa)` columns and `r nrow(ny_noaa)` rows. This dataset includes weather data from New York state weather stations, with the variables weather station ID, date of observation, precipitation measured in tenths of mm, snowfall and snow depth in mm, and maximum and minimum temperature in tenths of degrees C. 
+
+```{r, include=FALSE}
+colSums(is.na(ny_noaa))
+```
+
+There are a total of 145,838 missing values in the precipitation variable, 381,221 in snowfall, 591,786 in snow depth, 1,134,358 in maximum temperature, and 1,134,420 in minimum temperature.
+
+**Cleaning the data.**
+
+```{r}
+noaa_df =
+  ny_noaa %>%
+  separate(date, c("year", "month", "day")) %>%
+  mutate(
+    year = as.numeric(year),
+    month = as.numeric(month),
+    day = as.numeric(day),
+    prcp = as.numeric(prcp)*0.1,
+    tmax = as.numeric(tmax)*0.1,
+    tmin = as.numeric(tmin)*0.1
+  )
+```
+
+For snow, the most commonly observed value is 0 at `r noaa_df %>% filter (snow == 0) %>% count()` observations. Given that snow does not fall the majority of the year, it would make sense that this is the most commonly observed value.
+
 
 2-panel plot (org data first - group by station, year, month + summarize; filter january and july; then plot)
 
